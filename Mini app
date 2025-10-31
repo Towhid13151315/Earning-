@@ -1,0 +1,15 @@
+humster-mini/
+│
+├─ games/
+│   ├─ click-game/
+│   │   ├─ index.html
+│   │   └─ main.js
+│   └─ snake-game/
+│       ├─ index.html
+│       └─ snake.js
+│
+├─ data/
+│   └─ leaderboard.json   (optional for future)
+├─ bot/                   (optional for Python bot)
+│   └─ bot.py
+└─ README.md
