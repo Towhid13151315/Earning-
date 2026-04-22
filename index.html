@@ -122,7 +122,6 @@
             <div class="tab-item" onclick="switchTask('tele-area', this)">Telegram</div>
         </div>
         <div id="monetag-area">
-            <!-- Daily Progress Bar (added without changing design) -->
             <div id="dailyProgress"></div>
             <div id="monetag-main-grid" class="monetag-grid">
                 <div class="monetag-btn-main" onclick="loadMonetagSub(1)">Server 1</div>
@@ -164,7 +163,7 @@
         <img src="" id="uImgBig" style="width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--accent-blue); object-fit: cover;">
         <h2 id="uNameBig" style="margin: 15px 0 5px; font-weight: 800;">User Name</h2>
         <div id="refer-section" style="background: rgba(91, 127, 255, 0.05); margin: 20px; padding: 20px; border-radius: 20px; border: 1px dashed var(--accent-blue);">
-            <small>Have a Refer Code? (Get ৳5)</small>
+            <small>Have a Refer Code? (Get ৳100)</small>
             <div style="display: flex; gap: 10px; margin-top: 12px;"><input type="text" id="inputReferCode" placeholder="Enter Code" style="margin:0; flex:1;"><button class="watch-btn" onclick="applyRefer()" id="referBtn">Apply</button></div>
         </div>
         <div style="background: var(--card-bg); margin: 20px; padding: 25px; border-radius: 25px; display: flex; justify-content: space-around;">
@@ -255,7 +254,10 @@
             let newStreak = data.streak || 0;
             if (lastLogin !== today) {
                 newStreak = (lastLogin === new Date(Date.now() - 86400000).toISOString().split('T')[0]) ? newStreak + 1 : 1;
-                const bonus = Math.min(5 + newStreak * 3, 25);
+                
+                // Updated login bonus logic: 10 TK per streak day (Day 1 = 10, Day 2 = 20, etc.)
+                const bonus = newStreak * 10; 
+                
                 await updateDoc(userRef, {
                     lastLogin: serverTimestamp(),
                     streak: newStreak,
@@ -352,7 +354,8 @@
 
         window.fireAd = () => {
             if (typeof show_10531705 === 'function') {
-                show_10531705().then(() => addMoney(0.5)).catch(() => tg.showAlert("Ad skipped"));
+                // Updated to 20 TK per Ad watch
+                show_10531705().then(() => addMoney(20)).catch(() => tg.showAlert("Ad skipped")); 
             }
         };
 
@@ -381,7 +384,7 @@
             document.getElementById('uImgTop').src = photo;
             document.getElementById('uImgBig').src = photo;
 
-            // Level Badge (added inside profile without design change)
+            // Level Badge
             let levelHTML = `<div id="levelBadge" style="display:inline-flex;align-items:center;gap:6px;background:${getLevelInfo(totalEarned).color};color:white;padding:4px 12px;border-radius:50px;font-size:13px;font-weight:800;margin-top:8px;">${getLevelInfo(totalEarned).emoji} LV.${currentLevel} ${getLevelInfo(totalEarned).name}</div>`;
             if (!document.getElementById('levelBadge')) {
                 const nameEl = document.getElementById('uNameBig');
@@ -531,16 +534,20 @@
             const referrerId = snap.docs[0].id;
             await updateDoc(doc(db, "users", currentUserId), { referredBy: referrerId });
             referredBy = referrerId;
-            await updateDoc(doc(db, "users", currentUserId), { balance: increment(5) });
-            await updateDoc(doc(db, "users", referrerId), { balance: increment(10) });
-            tg.showAlert("✅ Referral applied!\nYou got ৳5\nReferrer got ৳10");
+            
+            // Updated Referral Bonus: Both get 100 TK
+            await updateDoc(doc(db, "users", currentUserId), { balance: increment(100) });
+            await updateDoc(doc(db, "users", referrerId), { balance: increment(100) });
+            tg.showAlert("✅ Referral applied!\nYou got ৳100\nReferrer got ৳100");
         };
 
+        // --- UPDATED SHARE REFER FUNCTION ---
         window.shareRefer = () => {
             const code = document.getElementById('uRef').innerText;
-            const text = `Join Earning Hub & earn real money daily!\nMy refer code: ${code}\nhttps://t.me/EarningHub2x?start=${code}`;
+            const text = `Join Earning Hub & earn real money daily!\n\n🤖 Bot: @EarningHub2bot\n📢 Join Channel: https://t.me/EarningHub2x\n\n🔗 My Refer Link:\nhttps://t.me/EarningHub2bot?start=${code}`;
             tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(text)}`);
         };
+        // ------------------------------------
 
         window.requestWithdrawal = async () => {
             const amount = parseFloat(document.getElementById('payAmount').value);
