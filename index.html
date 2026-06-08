@@ -325,11 +325,11 @@
     <!-- ADS SECTION -->
     <div id="tab-ads">
         <div class="server-grid" id="serverGrid">
-            <div class="server-card" onclick="openServer(1)"><div class="server-icon">⚡</div><div class="server-name">Server 1</div><div class="server-earn">৳10/task</div></div>
-            <div class="server-card" onclick="openServer(2)"><div class="server-icon">🌟</div><div class="server-name">Server 2</div><div class="server-earn">৳10/task</div></div>
-            <div class="server-card" onclick="openServer(3)"><div class="server-icon">🔥</div><div class="server-name">Server 3</div><div class="server-earn">৳10/task</div></div>
-            <div class="server-card" onclick="openServer(4)"><div class="server-icon">💎</div><div class="server-name">Server 4</div><div class="server-earn">৳10/task</div></div>
-            <div class="server-card" onclick="openServer(5)"><div class="server-icon">🚀</div><div class="server-name">Server 5</div><div class="server-earn">৳10/task</div></div>
+            <div class="server-card" onclick="openServer(1)"><div class="server-icon">⚡</div><div class="server-name">Server 1</div><div class="server-earn">৳0.50/task</div></div>
+            <div class="server-card" onclick="openServer(2)"><div class="server-icon">🌟</div><div class="server-name">Server 2</div><div class="server-earn">৳0.50/task</div></div>
+            <div class="server-card" onclick="openServer(3)"><div class="server-icon">🔥</div><div class="server-name">Server 3</div><div class="server-earn">৳0.50/task</div></div>
+            <div class="server-card" onclick="openServer(4)"><div class="server-icon">💎</div><div class="server-name">Server 4</div><div class="server-earn">৳0.50/task</div></div>
+            <div class="server-card" onclick="openServer(5)"><div class="server-icon">🚀</div><div class="server-name">Server 5</div><div class="server-earn">৳0.50/task</div></div>
         </div>
         <div id="taskListWrap" style="display:none;margin:0 15px;">
             <div onclick="closeServer()" style="display:flex;align-items:center;gap:8px;color:var(--blue);font-weight:700;cursor:pointer;padding:12px 0;font-size:14px;">
@@ -571,407 +571,6 @@ function lvl(e) {
     if(e>=10000) return {l:5,n:"LEGEND",e:"👑",c:"#c026d3"};
     if(e>=5000)  return {l:4,n:"PRO",e:"🔥",c:"#f59e0b"};
     if(e>=2000)  return {l:3,n:"EXPERT",e:"⭐",c:"#10b981"};
-    if(e>=500)   return {l:2,n:"ROOKIE",e:"🌱",c:"#3b82f6"};
-    return {l:1,n:"BEGINNER",e:"🆕",c:"#64748b"};
-}
-
-// ── ONBOARDING ──
-const slides = [
-    {icon:"📺", title:"Watch Ads & Earn", desc:"প্রতিটা ad দেখলে ৳10 পাবেন। যত বেশি দেখবেন তত বেশি আয়।"},
-    {icon:"👥", title:"Refer Friends", desc:"বন্ধুদের invite করুন। সরাসরি 20% + indirect 10% commission পাবেন।"},
-    {icon:"💸", title:"Withdraw Easily", desc:"১৫ জন refer করুন, account activate করুন — তারপর যেকোনো সময় withdraw করুন।"}
-];
-let slideIdx = 0;
-
-function renderSlide() {
-    const s = slides[slideIdx];
-    document.getElementById('obSlides').innerHTML = `<div class="ob-icon">${s.icon}</div><div class="ob-title">${s.title}</div><div class="ob-desc">${s.desc}</div>`;
-    const dots = document.getElementById('obDots');
-    dots.innerHTML = slides.map((_,i)=>`<div class="ob-dot ${i===slideIdx?'active':''}"></div>`).join('');
-    document.getElementById('obBtn').textContent = slideIdx===slides.length-1 ? "Get Started 🚀" : "Next";
-}
-
-window.nextSlide = () => {
-    slideIdx++;
-    if (slideIdx >= slides.length) { finishOnboarding(); return; }
-    renderSlide();
-};
-window.finishOnboarding = () => {
-    localStorage.setItem('eh_ob_done','1');
-    document.getElementById('onboarding').classList.remove('show');
-};
-
-// ── SPLASH ──
-setTimeout(async () => {
-    document.getElementById('splash').style.display = 'none';
-    if (!localStorage.getItem('eh_ob_done')) {
-        renderSlide();
-        document.getElementById('onboarding').classList.add('show');
-    }
-    await initUser();
-}, 1900);
-
-// ── INIT ──
-async function initUser() {
-    const ref  = doc(db,"users",uid);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-        await setDoc(ref,{
-            telegramID: ud.first_name||"Guest", photo: ud.photo_url||"",
-            balance:0, totalEarned:0, streak:0, lastLogin:null,
-            dailyTasks:0, lastTaskDate:null,
-            referCode:"REF"+Math.floor(1000+Math.random()*9000),
-            referredBy:null, refEarningsL1:0, refEarningsL2:0, referCount:0,
-            level:1, notificationEnabled:false, isActivated:false,
-            status:'active', uid, createdAt:serverTimestamp()
-        });
-    }
-    dailyLogin();
-    loadNotice();
-}
-
-async function loadNotice() {
-    try {
-        const s = await getDoc(doc(db,"admin_settings","notice"));
-        if (s.exists()&&s.data().text) {
-            document.getElementById('noticeText').innerText = s.data().text;
-            document.getElementById('noticeBanner').style.display = 'block';
-        }
-    } catch(e){}
-}
-
-async function dailyLogin() {
-    const ref  = doc(db,"users",uid);
-    const snap = await getDoc(ref);
-    const d    = snap.data();
-    const today = new Date().toISOString().split('T')[0];
-    const last  = d.lastLogin ? d.lastLogin.toDate().toISOString().split('T')[0] : null;
-    if (last===today) return;
-    const yest = new Date(Date.now()-86400000).toISOString().split('T')[0];
-    const ns   = last===yest ? (d.streak||0)+1 : 1;
-    const bonus = Math.min(5+ns*3,25);
-    await updateDoc(ref,{lastLogin:serverTimestamp(),streak:ns,balance:increment(bonus)});
-    tg.showAlert(`🎉 Daily Login Bonus!\n🔥 Streak: ${ns} days\n+ ৳${bonus}`);
-}
-
-// ── REALTIME ──
-onSnapshot(doc(db,"users",uid),(snap)=>{
-    if (!snap.exists()) return;
-    const d = snap.data();
-    if (d.status==='suspended') { document.getElementById('suspendedScreen').classList.add('show'); return; }
-
-    bal=d.balance||0; streak=d.streak||0; tasks=d.dailyTasks||0;
-    refBy=d.referredBy||null; refL1=d.refEarningsL1||0; refL2=d.refEarningsL2||0;
-    earned=d.totalEarned||0; activated=d.isActivated||false;
-    notifOn=d.notificationEnabled||false; refCount=d.referCount||0;
-    const li = lvl(earned); level=li.l;
-
-    const photo = d.photo||`https://ui-avatars.com/api/?name=${encodeURIComponent(d.telegramID)}&background=1a2235&color=fff`;
-    document.getElementById('uImg').src = photo;
-    document.getElementById('uName').innerText = d.telegramID;
-    document.getElementById('uBal').innerText  = bal.toFixed(2);
-
-    // Home
-    document.getElementById('h-earned').innerText = earned.toFixed(2);
-    document.getElementById('h-streak').innerText = `🔥 ${streak} Day Streak`;
-    document.getElementById('h-tasks').innerText  = `${tasks}/15`;
-    document.getElementById('h-refs').innerText   = refCount;
-    document.getElementById('h-level').innerText  = `LV.${level}`;
-    document.getElementById('taskCount').innerText = tasks;
-    document.getElementById('taskBar').style.width = Math.min(tasks/15*100,100)+'%';
-    document.getElementById('taskMsg').innerText   = tasks>=15 ? '🎁 Bonus ৳10 earned! Max reached.' : `Complete 15 tasks for ৳10 bonus`;
-
-    // Wallet
-    document.getElementById('w-bal').innerText = bal.toFixed(2);
-    const refDone = refCount>=NEED_REFS;
-    const ci_r = document.getElementById('cond-refer');
-    const ci_a = document.getElementById('cond-activate');
-    document.getElementById('cond-refer-sub').innerText  = `${refCount}/15 completed`;
-    document.getElementById('cond-refer-icon').innerText = refDone ? '✅' : '⏳';
-    ci_r.querySelector('.condition-icon').className = `condition-icon ${refDone?'done':'pending'}`;
-    document.getElementById('cond-activate-sub').innerText  = activated ? 'Activated ✓' : 'Pay ৳200 once';
-    document.getElementById('cond-activate-icon').innerText = activated ? '✅' : '⏳';
-    ci_a.querySelector('.condition-icon').className = `condition-icon ${activated?'done':'pending'}`;
-
-    // Profile
-    document.getElementById('p-img').src    = photo;
-    document.getElementById('p-name').innerText = d.telegramID;
-    document.getElementById('p-bal').innerText  = bal.toFixed(2);
-    document.getElementById('p-refs').innerText = refCount;
-    document.getElementById('p-streak').innerText = streak;
-    document.getElementById('p-code').innerText = d.referCode;
-    document.getElementById('p-l1').innerText   = '৳'+refL1.toFixed(2);
-    document.getElementById('p-l2').innerText   = '৳'+refL2.toFixed(2);
-    document.getElementById('p-level').innerHTML = `${li.e} LV.${li.l} ${li.n}`;
-    document.getElementById('p-level').style.background = li.c+'22';
-    document.getElementById('p-level').style.color = li.c;
-    document.getElementById('p-level').style.borderColor = li.c+'44';
-
-    const pct = Math.min(refCount/NEED_REFS*100,100);
-    document.getElementById('p-ref-count').innerText = refCount;
-    document.getElementById('p-ref-bar').style.width  = pct+'%';
-    document.getElementById('p-ref-msg').innerText    = refCount>=NEED_REFS ? '✅ Withdrawal unlocked!' : `${NEED_REFS-refCount} more friends needed`;
-
-    if (d.referredBy) document.getElementById('applyRefCard').style.display='none';
-    document.getElementById('notifToggle').checked = notifOn;
-});
-
-// Videos realtime
-onSnapshot(collection(db,"videos"),(snap)=>{
-    const el = document.getElementById('vList');
-    el.innerHTML='';
-    if (snap.empty) { el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--dim);font-size:14px;">No videos yet</div>`; return; }
-    snap.forEach(d=>{
-        const v=d.data(); const vid=d.id;
-        el.innerHTML+=`
-        <div class="video-card">
-            <div class="video-wrap"><iframe src="${v.url}" allowfullscreen></iframe></div>
-            <div class="video-info">
-                <div><b style="font-size:14px;">${v.title}</b><br><small id="tmr-${vid}" style="color:var(--orange);font-size:12px;">Watch 60s to claim</small></div>
-                <button id="btn-${vid}" class="claim-btn locked" disabled>Locked</button>
-            </div>
-        </div>`;
-        let t=60;
-        const iv=setInterval(()=>{
-            t--;
-            const te=document.getElementById(`tmr-${vid}`);
-            if(te) te.textContent=`${t}s remaining`;
-            if(t<=0){
-                clearInterval(iv);
-                const btn=document.getElementById(`btn-${vid}`);
-                if(btn){btn.textContent='Claim ৳2';btn.classList.remove('locked');btn.disabled=false;btn.onclick=()=>{addMoney(2,'v_'+vid);btn.textContent='✅ Done';btn.disabled=true;};}
-            }
-        },1000);
-    });
-});
-
-// ── EARN ──
-window.addMoney = async (amt, key) => {
-    if (key) {
-        const now=Date.now();
-        if(cooldowns[key]&&(now-cooldowns[key])<30000){tg.showAlert("⏳ Wait before claiming again!");return;}
-        cooldowns[key]=now;
-    }
-    const r=doc(db,"users",uid);
-    await updateDoc(r,{balance:increment(amt),totalEarned:increment(amt)});
-    await incrTask();
-    await refComm(amt);
-    tg.showAlert(`✅ ৳${amt} added to your balance!`);
-};
-
-window.fireAd = (key) => {
-    if(typeof show_10531705==='function'){
-        show_10531705().then(()=>addMoney(10,key)).catch(()=>tg.showAlert("Ad unavailable"));
-    } else tg.showAlert("Ad not available");
-};
-
-async function incrTask() {
-    const today=new Date().toISOString().split('T')[0];
-    const r=doc(db,"users",uid);
-    const s=await getDoc(r);
-    const d=s.data();
-    let c=(d.dailyTasks||0)+1;
-    if(d.lastTaskDate!==today) c=1;
-    const u={dailyTasks:c,lastTaskDate:today};
-    if(c===15){u.balance=increment(10);u.totalEarned=increment(10);tg.showAlert("🏆 Task Master!\n+৳10 bonus!");}
-    await updateDoc(r,u);
-}
-
-async function refComm(amt) {
-    if(!refBy) return;
-    const r=doc(db,"users",refBy);
-    const s=await getDoc(r);
-    if(!s.exists()) return;
-    await updateDoc(r,{balance:increment(Math.floor(amt*0.2)),refEarningsL1:increment(Math.floor(amt*0.2))});
-    const l2=s.data().referredBy;
-    if(l2) await updateDoc(doc(db,"users",l2),{balance:increment(Math.floor(amt*0.1)),refEarningsL2:increment(Math.floor(amt*0.1))});
-}
-
-// ── WITHDRAW ──
-window.doWithdraw = async () => {
-    const amt = parseFloat(document.getElementById('w-amount').value);
-    const num = document.getElementById('w-number').value.trim();
-    if(!num||isNaN(amt)||amt<1000) return tg.showAlert("Minimum ৳1000 required!");
-    if(amt>bal) return tg.showAlert("Insufficient balance!");
-    if(refCount<NEED_REFS) return tg.showAlert(`🚫 ${NEED_REFS-refCount} more friends needed!\n\nRefer ${NEED_REFS} friends first.`);
-    if(!activated) { document.getElementById('actModal').style.display='block'; return; }
-    const btn=document.getElementById('w-btn');
-    btn.disabled=true; btn.textContent='Submitting...';
-    try {
-        const method = document.getElementById('m-bkash').classList.contains('active') ? 'bKash' : 'Nagad';
-        await addDoc(collection(db,"withdrawals"),{userId:uid,name:document.getElementById('uName').innerText,number:num,amount:amt,method,status:"Pending",time:serverTimestamp()});
-        await updateDoc(doc(db,"users",uid),{balance:increment(-amt)});
-        tg.showAlert("✅ Withdrawal submitted!\nProcessing within 24 hours.");
-        document.getElementById('w-amount').value='';
-        document.getElementById('w-number').value='';
-    } catch(e){tg.showAlert("Error! Try again.");}
-    btn.disabled=false; btn.textContent='Submit Withdrawal Request';
-};
-
-window.selMethod = (m) => {
-    document.getElementById('m-bkash').classList.toggle('active',m==='bkash');
-    document.getElementById('m-nagad').classList.toggle('active',m==='nagad');
-};
-
-// ── HISTORY ──
-function loadHistory() {
-    const q=query(collection(db,"withdrawals"),where("userId","==",uid));
-    onSnapshot(q,(snap)=>{
-        const el=document.getElementById('historyList');
-        if(snap.empty){el.innerHTML=`<div style="padding:20px;text-align:center;color:var(--dim);font-size:13px;">No withdrawals yet</div>`;return;}
-        const arr=[];
-        snap.forEach(d=>arr.push(d.data()));
-        arr.sort((a,b)=>(b.time?.seconds||0)-(a.time?.seconds||0));
-        el.innerHTML=arr.map(w=>{
-            const dt=w.time?w.time.toDate().toLocaleDateString('en-BD'):'—';
-            const cls=w.status==='Approved'?'badge-green':w.status==='Rejected'?'badge-red':'badge-orange';
-            return `<div class="history-item">
-                <div class="h-left">
-                    <div class="h-icon withdraw">💸</div>
-                    <div><div class="h-title">${w.method} • ${w.number}</div><div class="h-date">${dt}</div></div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="h-amount" style="color:var(--orange);">-৳${w.amount}</div>
-                    <div class="badge ${cls}" style="font-size:11px;margin-top:4px;">${w.status}</div>
-                </div>
-            </div>`;
-        }).join('');
-    });
-}
-
-// ── ACTIVATION ──
-window.cpNum = (id) => {
-    const n=document.getElementById(id).innerText;
-    navigator.clipboard.writeText(n).then(()=>tg.showAlert("✅ Copied: "+n)).catch(()=>tg.showAlert(n));
-};
-
-window.submitAct = async () => {
-    const trx=document.getElementById('trxId').value.trim();
-    const method=document.getElementById('trxMethod').value;
-    const msg=document.getElementById('actMsg');
-    if(!trx||trx.length<4){msg.innerHTML=`<span style="color:var(--red)">❌ Enter valid Transaction ID</span>`;return;}
-    msg.innerHTML=`<span style="color:var(--orange)">⏳ Submitting...</span>`;
-    try {
-        await addDoc(collection(db,"activation_requests"),{userId:uid,name:document.getElementById('uName').innerText,transactionId:trx,method,amount:200,status:"Pending",time:serverTimestamp()});
-        msg.innerHTML=`<span style="color:var(--green)">✅ Submitted! Admin will verify within 24 hours.</span>`;
-        setTimeout(()=>{document.getElementById('actModal').style.display='none';document.getElementById('trxId').value='';msg.innerHTML='';tg.showAlert("✅ Request submitted!\nYou'll be notified after verification.");},2500);
-    } catch(e){msg.innerHTML=`<span style="color:var(--red)">❌ Error. Try again.</span>`;}
-};
-
-// ── REFERRAL ──
-window.copyCode = () => {
-    const c=document.getElementById('p-code').innerText;
-    navigator.clipboard.writeText(c).then(()=>tg.showAlert("✅ Code copied!\n"+c)).catch(()=>tg.showAlert("Code: "+c));
-};
-
-window.doShare = () => {
-    const code=document.getElementById('p-code').innerText;
-    const text=`💰 Earning Hub তে join করুন এবং প্রতিদিন ইনকাম করুন!\n🎁 Join করলেই bonus পাবেন!\nMy code: ${code}\nhttps://t.me/EarningHub2x?start=${code}`;
-    tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(text)}`);
-};
-
-window.applyRef = async () => {
-    const code=document.getElementById('refCodeInput').value.trim();
-    if(!code) return tg.showAlert("Enter a code");
-    const ms=await getDoc(doc(db,"users",uid));
-    if(ms.data().referredBy) return tg.showAlert("❌ Already used a code!");
-    const q=query(collection(db,"users"),where("referCode","==",code));
-    const s=await getDocs(q);
-    if(s.empty) return tg.showAlert("❌ Invalid code!");
-    const rid=s.docs[0].id;
-    if(rid===uid) return tg.showAlert("❌ Can't use your own code!");
-    await updateDoc(doc(db,"users",uid),{referredBy:rid,balance:increment(5)});
-    await updateDoc(doc(db,"users",rid),{balance:increment(10),referCount:increment(1)});
-    refBy=rid;
-    document.getElementById('applyRefCard').style.display='none';
-    tg.showAlert("✅ Code applied!\nYou got ৳5 | Friend got ৳10");
-};
-
-// ── LEADERBOARD ──
-async function loadLeader() {
-    const el=document.getElementById('leaderList');
-    el.innerHTML=`<div style="padding:20px;"><div class="shimmer" style="height:56px;margin-bottom:8px;border-radius:14px;"></div><div class="shimmer" style="height:56px;margin-bottom:8px;border-radius:14px;"></div><div class="shimmer" style="height:56px;border-radius:14px;"></div></div>`;
-    const q=query(collection(db,"users"),orderBy("balance","desc"),limit(10));
-    const s=await getDocs(q);
-    const medals=['🥇','🥈','🥉'];
-    let html='<div style="padding:0 15px;">';
-    let r=1;
-    s.forEach(doc=>{
-        const u=doc.data();
-        const li=lvl(u.totalEarned||0);
-        html+=`<div style="display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:14px;margin-bottom:8px;border:1px solid var(--border);">
-            <div style="font-size:22px;width:32px;text-align:center;">${r<=3?medals[r-1]:'#'+r}</div>
-            <img src="${u.photo||'https://ui-avatars.com/api/?name='+encodeURIComponent(u.telegramID||'U')+'&background=1a2235&color=fff'}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">
-            <div style="flex:1;"><div style="font-weight:700;font-size:14px;">${u.telegramID||'Guest'}</div><div style="font-size:11px;color:${li.c};font-weight:600;">${li.e} ${li.n}</div></div>
-            <div style="font-weight:800;color:var(--orange);">৳${(u.balance||0).toFixed(0)}</div>
-        </div>`;
-        r++;
-    });
-    html+='</div>';
-    el.innerHTML=html;
-}
-
-// ── NOTIFICATIONS ──
-window.toggleNotif = async () => {
-    notifOn=!notifOn;
-    await updateDoc(doc(db,"users",uid),{notificationEnabled:notifOn});
-    tg.showAlert(notifOn?"🛎 Notifications ON":"Notifications OFF");
-};
-
-// ── NAVIGATION ──
-window.goPage = (name, el) => {
-    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-    document.getElementById('page-'+name).classList.add('active');
-    document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
-    if(el) el.classList.add('active');
-    if(name==='top') loadLeader();
-    if(name==='wallet') loadHistory();
-};
-
-window.switchTab = (name, el) => {
-    ['ads','video','telegram'].forEach(t=>document.getElementById('tab-'+t).style.display='none');
-    document.getElementById('tab-'+name).style.display='block';
-    document.querySelectorAll('.ttab').forEach(t=>t.classList.remove('active'));
-    el.classList.add('active');
-};
-
-window.openServer = (id) => {
-    document.getElementById('serverGrid').style.display='none';
-    document.getElementById('taskListWrap').style.display='block';
-    const el=document.getElementById('taskList');
-    el.innerHTML='';
-    for(let i=1;i<=15;i++){
-        const key=`s${id}_t${i}`;
-        el.innerHTML+=`<div class="task-item">
-            <div class="task-left">
-                <div class="task-num">${i}</div>
-                <div class="task-info"><b>Task #${i}</b><small>৳10</small></div>
-            </div>
-            <button class="ad-btn" id="${key}_b" onclick="doTask('${key}',this)">Watch Ad</button>
-        </div>`;
-    }
-};
-
-window.doTask = (key, btn) => {
-    const now=Date.now();
-    if(cooldowns[key]&&(now-cooldowns[key])<30000){
-        const left=Math.ceil((30000-(now-cooldowns[key]))/1000);
-        tg.showAlert(`⏳ Wait ${left}s`);return;
-    }
-    btn.disabled=true; btn.textContent='...';
-    fireAd(key);
-    setTimeout(()=>{btn.disabled=false;btn.textContent='Watch Ad';},3000);
-};
-
-window.closeServer = () => {
-    document.getElementById('serverGrid').style.display='grid';
-    document.getElementById('taskListWrap').style.display='none';
-};
-
-initUser();
-</script>
-</body>
-</html>    if(e>=2000)  return {l:3,n:"EXPERT",e:"⭐",c:"#10b981"};
     if(e>=500)   return {l:2,n:"ROOKIE",e:"🌱",c:"#3b82f6"};
     return {l:1,n:"BEGINNER",e:"🆕",c:"#64748b"};
 }
@@ -1346,7 +945,7 @@ window.openServer = (id) => {
         el.innerHTML+=`<div class="task-item">
             <div class="task-left">
                 <div class="task-num">${i}</div>
-                <div class="task-info"><b>Task #${i}</b><small>৳10</small></div>
+                <div class="task-info"><b>Task #${i}</b><small>৳0.50</small></div>
             </div>
             <button class="ad-btn" id="${key}_b" onclick="doTask('${key}',this)">Watch Ad</button>
         </div>`;
@@ -1359,6 +958,20 @@ window.doTask = (key, btn) => {
         const left=Math.ceil((30000-(now-cooldowns[key]))/1000);
         tg.showAlert(`⏳ Wait ${left}s`);return;
     }
+    btn.disabled=true; btn.textContent='...';
+    fireAd(key);
+    setTimeout(()=>{btn.disabled=false;btn.textContent='Watch Ad';},3000);
+};
+
+window.closeServer = () => {
+    document.getElementById('serverGrid').style.display='grid';
+    document.getElementById('taskListWrap').style.display='none';
+};
+
+initUser();
+</script>
+</body>
+</html>    }
     btn.disabled=true; btn.textContent='...';
     fireAd(key);
     setTimeout(()=>{btn.disabled=false;btn.textContent='Watch Ad';},3000);
