@@ -325,11 +325,11 @@
     <!-- ADS SECTION -->
     <div id="tab-ads">
         <div class="server-grid" id="serverGrid">
-            <div class="server-card" onclick="openServer(1)"><div class="server-icon">⚡</div><div class="server-name">Server 1</div><div class="server-earn">৳0.50/task</div></div>
-            <div class="server-card" onclick="openServer(2)"><div class="server-icon">🌟</div><div class="server-name">Server 2</div><div class="server-earn">৳0.50/task</div></div>
-            <div class="server-card" onclick="openServer(3)"><div class="server-icon">🔥</div><div class="server-name">Server 3</div><div class="server-earn">৳0.50/task</div></div>
-            <div class="server-card" onclick="openServer(4)"><div class="server-icon">💎</div><div class="server-name">Server 4</div><div class="server-earn">৳0.50/task</div></div>
-            <div class="server-card" onclick="openServer(5)"><div class="server-icon">🚀</div><div class="server-name">Server 5</div><div class="server-earn">৳0.50/task</div></div>
+            <div class="server-card" onclick="openServer(1)"><div class="server-icon">⚡</div><div class="server-name">Server 1</div><div class="server-earn">৳10/task</div></div>
+            <div class="server-card" onclick="openServer(2)"><div class="server-icon">🌟</div><div class="server-name">Server 2</div><div class="server-earn">৳10/task</div></div>
+            <div class="server-card" onclick="openServer(3)"><div class="server-icon">🔥</div><div class="server-name">Server 3</div><div class="server-earn">৳10/task</div></div>
+            <div class="server-card" onclick="openServer(4)"><div class="server-icon">💎</div><div class="server-name">Server 4</div><div class="server-earn">৳10/task</div></div>
+            <div class="server-card" onclick="openServer(5)"><div class="server-icon">🚀</div><div class="server-name">Server 5</div><div class="server-earn">৳10/task</div></div>
         </div>
         <div id="taskListWrap" style="display:none;margin:0 15px;">
             <div onclick="closeServer()" style="display:flex;align-items:center;gap:8px;color:var(--blue);font-weight:700;cursor:pointer;padding:12px 0;font-size:14px;">
@@ -577,7 +577,7 @@ function lvl(e) {
 
 // ── ONBOARDING ──
 const slides = [
-    {icon:"📺", title:"Watch Ads & Earn", desc:"প্রতিটা ad দেখলে ৳0.50 পাবেন। যত বেশি দেখবেন তত বেশি আয়।"},
+    {icon:"📺", title:"Watch Ads & Earn", desc:"প্রতিটা ad দেখলে ৳10 পাবেন। যত বেশি দেখবেন তত বেশি আয়।"},
     {icon:"👥", title:"Refer Friends", desc:"বন্ধুদের invite করুন। সরাসরি 20% + indirect 10% commission পাবেন।"},
     {icon:"💸", title:"Withdraw Easily", desc:"১৫ জন refer করুন, account activate করুন — তারপর যেকোনো সময় withdraw করুন।"}
 ];
@@ -761,7 +761,7 @@ window.addMoney = async (amt, key) => {
 
 window.fireAd = (key) => {
     if(typeof show_10531705==='function'){
-        show_10531705().then(()=>addMoney(0.5,key)).catch(()=>tg.showAlert("Ad unavailable"));
+        show_10531705().then(()=>addMoney(10,key)).catch(()=>tg.showAlert("Ad unavailable"));
     } else tg.showAlert("Ad not available");
 };
 
@@ -945,7 +945,7 @@ window.openServer = (id) => {
         el.innerHTML+=`<div class="task-item">
             <div class="task-left">
                 <div class="task-num">${i}</div>
-                <div class="task-info"><b>Task #${i}</b><small>৳0.50</small></div>
+                <div class="task-info"><b>Task #${i}</b><small>৳10</small></div>
             </div>
             <button class="ad-btn" id="${key}_b" onclick="doTask('${key}',this)">Watch Ad</button>
         </div>`;
@@ -971,7 +971,7 @@ window.closeServer = () => {
 initUser();
 </script>
 </body>
-</html>    }
+</html></html>    }
     btn.disabled=true; btn.textContent='...';
     fireAd(key);
     setTimeout(()=>{btn.disabled=false;btn.textContent='Watch Ad';},3000);
